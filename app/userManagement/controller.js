@@ -16,9 +16,10 @@ async function addNewUser(req, res) {
       password: hashedPassword,
       role,
     });
-    await new user.save();
+    await  user.save();
     res.status(201).json({ message: "User created successfully" });
   } catch (error) {
+    console.error("Error creating user:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 }
