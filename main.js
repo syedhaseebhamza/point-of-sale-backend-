@@ -4,6 +4,7 @@ const cors = require("cors");
 require("dotenv").config();
 const { connectToDB } = require("./utils/database.js");
 const userRoutes = require("./app/userAuth/route.js");
+const newUserRoutes = require("./app/userManagement/route.js");
 const app = express();
 
 app.use(
@@ -18,6 +19,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use("/user", userRoutes);
+app.use("/user", newUserRoutes);
 
 connectToDB()
   .then(() => {
