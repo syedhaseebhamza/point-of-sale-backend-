@@ -4,7 +4,8 @@
   "description": "",
   "main": "main.js",
   "scripts": {
-    "start": "nodemon main.js"
+    "start": "nodemon main.js",
+    "seed": "node seeders/seeder.js"
   },
   "author": "",
   "license": "ISC",
