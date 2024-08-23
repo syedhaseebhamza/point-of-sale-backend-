@@ -1,5 +1,5 @@
-require("dotenv").config();
 const User = require("./model");
+const newUser = require("../userManagement/model");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 async function login(req, res) {
@@ -10,7 +10,13 @@ async function login(req, res) {
       .json({ message: "username and password are required" });
   }
   try {
-    const user = await User.findOne({ username });
+   let user = await User.findOne({ username });
+
+    
+    if (!user) {
+      user = await newUser.findOne({ username });
+    }
+
     if (!user) {
       return res.status(400).json({ message: "Invalid username or password" });
     }
@@ -19,7 +25,7 @@ async function login(req, res) {
       return res.status(401).json({ message: "Invalid username or password" });
     }
     const token = jwt.sign(
-      { userId: user._id, username: user.username },
+      { userId: user._id, username: user.username, role: user.role }, // Include role in the token
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );

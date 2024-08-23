@@ -8,7 +8,7 @@ const adminUser = [
   {
     username: "admin",
     password: "adminpassword",
-    role: "admin",
+    role: "superadmin",
   },
 ];
 
