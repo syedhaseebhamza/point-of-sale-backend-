@@ -5,6 +5,7 @@ require("dotenv").config();
 const { connectToDB } = require("./utils/database.js");
 const userRoutes = require("./app/userAuth/route.js");
 const newUserRoutes = require("./app/userManagement/route.js");
+const userPermissionRoutes = require("./app/rolePermission/route.js");
 const app = express();
 
 app.use(
@@ -20,6 +21,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use("/user", userRoutes);
 app.use("/user", newUserRoutes);
+app.use("/user", userPermissionRoutes);
 
 connectToDB()
   .then(() => {
