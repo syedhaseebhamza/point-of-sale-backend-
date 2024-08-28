@@ -9,8 +9,22 @@ async function handleAddItems(req, res) {
   }
 
   const { categoryName, retailPrice, salePrice, discount, size } = req.body;
-  if (!categoryName || !retailPrice || !salePrice || !discount || !size) {
-    return res.status(400).json({ message: "All fields are required" });
+  if (!categoryName) {
+    return res
+      .status(400)
+      .json({ message: "categoryName fields are required" });
+  }
+  if (!retailPrice) {
+    return res.status(400).json({ message: "retailPrice fields are required" });
+  }
+  if (!salePrice) {
+    return res.status(400).json({ message: "salePrice fields are required" });
+  }
+  if (!discount) {
+    return res.status(400).json({ message: "discount fields are required" });
+  }
+  if (!size) {
+    return res.status(400).json({ message: "size fields are required" });
   }
 
   try {
@@ -48,7 +62,7 @@ async function handleAddItems(req, res) {
 
 async function handleGetItems(req, res) {
   try {
-    const items = await Items.find({});
+    const items = await Items.find();
     res.status(200).json({ message: "Items retrieved successfully", items });
   } catch (error) {
     res.status(500).json({ message: "Internal server error" });
