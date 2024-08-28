@@ -9,6 +9,6 @@ const upload = require("../../middleware/multer.js");
 const router = express.Router();
 
 router.post("/create/category", authenticateToken, upload, handelAddCategory);
-router.get("/allcategory", authenticateToken, getAllCategory);
+router.get("/all/category", authenticateToken, getAllCategory);
 router.delete("/delete/category/:id", authenticateToken, deleteCategory);
 module.exports = router;
