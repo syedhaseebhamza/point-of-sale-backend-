@@ -5,7 +5,7 @@ const {
   deleteUser,
   handleEditUser,
 } = require("./controller");
-const authenticateToken = require("../../utils/authMiddleware");
+const authenticateToken = require("../../middleware/authMiddleware");
 const router = express();
 
 router.post("/create", authenticateToken, addNewUser);
