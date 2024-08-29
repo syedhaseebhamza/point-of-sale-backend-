@@ -66,21 +66,31 @@ async function handleUpdateCategory(req, res) {
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(400).json({ message: "Invalid ID" });
   }
-  const { name, description } = req.body;
-  if (!name || !description) {
-    return res.status(400).send("All fields are required");
+
+  const updateData = {};
+  if (req.body.name) updateData.name = req.body.name;
+  if (req.body.description) updateData.description = req.body.description;
+  if (req.file) {
+    updateData.image = `${req.protocol}://${req.get("host")}/public/${
+      req.file.filename
+    }`;
   }
+
+  if (Object.keys(updateData).length === 0) {
+    return res.status(400).json({ message: "No fields provided for update" });
+  }
+
   try {
-    const updateCategory = await Categories.findByIdAndUpdate(
-      id,
-      { name, description },
-      { new: true }
-    );
+    const updateCategory = await Categories.findByIdAndUpdate(id, updateData, {
+      new: true,
+    });
+
     if (!updateCategory) {
       return res
         .status(404)
         .json({ message: `Category with ID ${id} not found` });
     }
+
     res
       .status(200)
       .json({ message: "Category updated successfully", updateCategory });
