@@ -15,7 +15,7 @@ async function handleAddItems(req, res) {
     !name ||
     !variants ||
     !Array.isArray(variants) ||
-    variants.length === 0
+    !variants.length === 0
   ) {
     return res.status(400).json({
       message:
@@ -57,4 +57,22 @@ async function handleGetItems(req, res) {
   }
 }
 
-module.exports = { handleAddItems, handleGetItems };
+async function deleteItem(req, res) {
+  const { id } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ message: "Invalid ID" });
+  }
+  try {
+    const deleteExistingItem = await Items.findByIdAndDelete(id);
+    if (!deleteExistingItem) {
+      return res.status(404).json({ message: `Item with ID ${id} not found` });
+    }
+    res
+      .status(200)
+      .json({ message: `Item with ID ${id} deleted successfully` });
+  } catch (error) {
+    res.status(500).json({ message: `Failed to delete Item with ID ${id}` });
+  }
+}
+
+module.exports = { handleAddItems, handleGetItems, deleteItem };
