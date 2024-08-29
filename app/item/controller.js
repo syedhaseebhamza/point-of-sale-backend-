@@ -15,7 +15,7 @@ async function handleAddItems(req, res) {
     !name ||
     !variants ||
     !Array.isArray(variants) ||
-    !variants.length === 0
+    variants.length !== 0
   ) {
     return res.status(400).json({
       message:
