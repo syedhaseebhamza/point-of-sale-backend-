@@ -60,31 +60,31 @@ async function handleEditUser(req, res) {
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(400).json({ message: "Invalid ID" });
   }
+
   const { username, role } = req.body;
-  if ((!username, !role)) {
-    return res.status(400).json({ message: "all filed are required " });
-  }
+
+  // Create an update object and only add properties that are not undefined or empty
+  const updateData = {};
+  if (username) updateData.username = username;
+  if (role) updateData.role = role;
+
   try {
     const updateSubUser = await newUser
-      .findByIdAndUpdate(
-        id,
-        {
-          username,
-          role,
-        },
-        { new: true, runValidators: true }
-      )
+      .findByIdAndUpdate(id, updateData, { new: true, runValidators: true })
       .select("-password");
+
     if (!updateSubUser) {
       return res
         .status(404)
-        .json({ message: `subuser with ID ${id} not found` });
+        .json({ message: `Subuser with ID ${id} not found` });
     }
+
     res.status(200).json(updateSubUser);
   } catch (error) {
     res.status(500).json({ message: `Failed to update subuser with ID ${id}` });
   }
 }
+
 module.exports = {
   addNewUser,
   getAllUser,

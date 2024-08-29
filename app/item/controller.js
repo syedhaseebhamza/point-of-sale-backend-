@@ -2,55 +2,43 @@ const Items = require("./model");
 const mongoose = require("mongoose");
 
 async function handleAddItems(req, res) {
-  const { id } = req.params;
+  const { categoryId } = req.query;
+  console.log("Received categoryId:", categoryId);
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
+  if (!mongoose.Types.ObjectId.isValid(categoryId)) {
     return res.status(400).json({ message: "Invalid ID" });
   }
 
-  const { categoryName, retailPrice, salePrice, discount, size } = req.body;
-  if (!categoryName) {
-    return res
-      .status(400)
-      .json({ message: "categoryName fields are required" });
-  }
-  if (!retailPrice) {
-    return res.status(400).json({ message: "retailPrice fields are required" });
-  }
-  if (!salePrice) {
-    return res.status(400).json({ message: "salePrice fields are required" });
-  }
-  if (!discount) {
-    return res.status(400).json({ message: "discount fields are required" });
-  }
-  if (!size) {
-    return res.status(400).json({ message: "size fields are required" });
+  const { categoryName, name, retailPrice, variants } = req.body;
+  if (
+    !categoryName ||
+    !name ||
+    !variants ||
+    !Array.isArray(variants) ||
+    variants.length === 0
+  ) {
+    return res.status(400).json({
+      message:
+        "categoryName, name, and variants are required, and variants must be a non-empty array",
+    });
   }
 
   try {
-    const existingItem = await Items.findById(id);
-    if (existingItem) {
-      return res
-        .status(400)
-        .json({ message: "Item with this ID already exists" });
-    }
-
-    const existingItemWithSameCategoryName = await Items.findOne({
-      categoryName,
+    const existingItemWithSameName = await Items.findOne({
+      name,
     });
-    if (existingItemWithSameCategoryName) {
+    if (existingItemWithSameName) {
       return res
         .status(400)
-        .json({ message: "Item with this category name already exists" });
+        .json({ message: "Item with this  name already exists" });
     }
 
     const newItem = new Items({
-      _id: id,
+      _id: categoryId,
       categoryName,
+      name,
       retailPrice,
-      salePrice,
-      discount,
-      size,
+      variants,
     });
 
     await newItem.save();
