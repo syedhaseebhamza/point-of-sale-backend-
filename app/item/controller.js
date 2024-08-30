@@ -3,7 +3,6 @@ const mongoose = require("mongoose");
 
 async function handleAddItems(req, res) {
   const { categoryId } = req.query;
-  console.log("Received categoryId:", categoryId);
 
   if (!mongoose.Types.ObjectId.isValid(categoryId)) {
     return res.status(400).json({ message: "Invalid ID" });
@@ -15,12 +14,20 @@ async function handleAddItems(req, res) {
     !name ||
     !variants ||
     !Array.isArray(variants) ||
-    variants.length !== 0
+    variants.length === 0
   ) {
     return res.status(400).json({
       message:
         "categoryName, name, and variants are required, and variants must be a non-empty array",
     });
+  }
+
+  for (const variant of variants) {
+    if (!variant.size || !variant.price) {
+      return res.status(400).json({
+        message: "Each variant must have a non-empty size and price",
+      });
+    }
   }
 
   try {
