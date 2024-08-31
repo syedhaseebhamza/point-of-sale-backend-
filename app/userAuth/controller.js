@@ -10,9 +10,8 @@ async function login(req, res) {
       .json({ message: "username and password are required" });
   }
   try {
-   let user = await User.findOne({ username });
+    let user = await User.findOne({ username });
 
-    
     if (!user) {
       user = await newUser.findOne({ username });
     }
@@ -25,9 +24,9 @@ async function login(req, res) {
       return res.status(401).json({ message: "Invalid username or password" });
     }
     const token = jwt.sign(
-      { userId: user._id, username: user.username, role: user.role }, // Include role in the token
+      { userId: user._id, username: user.username, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "4h" }
     );
     res.status(200).json({
       message: "Login successful",
