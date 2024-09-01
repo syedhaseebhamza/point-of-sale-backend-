@@ -49,6 +49,7 @@ async function handleAddItems(req, res) {
       softDeletedItem.categoryName = categoryName;
       softDeletedItem.retailPrice = retailPrice;
       softDeletedItem.variants = variants;
+      softDeletedItem.categoryId = categoryId;
       await softDeletedItem.save();
 
       return res
@@ -57,6 +58,7 @@ async function handleAddItems(req, res) {
     }
 
     const newItem = new Items({
+      categoryId,
       categoryName,
       name,
       retailPrice,
@@ -106,12 +108,10 @@ async function deleteItem(req, res) {
     if (!deletedItem) {
       return res.status(404).json({ message: `Item with ID ${id} not found` });
     }
-    res
-      .status(200)
-      .json({
-        message: `Item with ID ${id} deleted successfully`,
-        deletedItem,
-      });
+    res.status(200).json({
+      message: `Item with ID ${id} deleted successfully`,
+      deletedItem,
+    });
   } catch (error) {
     res.status(500).json({ message: `Failed to delete Item with ID ${id}` });
   }
@@ -151,7 +151,7 @@ async function handleUpdateItem(req, res) {
 
         if (existingVariant) {
           existingVariant.price = variant.price;
-          existingVariant.isDeleted = false; 
+          existingVariant.isDeleted = false;
         } else {
           item.variants.push({
             size: variant.size,

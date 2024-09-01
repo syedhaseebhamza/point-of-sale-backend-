@@ -1,5 +1,6 @@
 const Categories = require("./model");
 const mongoose = require("mongoose");
+const Items = require("../item/model");
 async function handelAddCategory(req, res) {
   const { name, description } = req.body;
   if (!name || !description) {
@@ -45,6 +46,13 @@ async function deleteCategory(req, res) {
     return res.status(400).json({ message: "Invalid ID" });
   }
   try {
+    const linkedItems = await Items.find({ categoryId: id, isDeleted: false });
+    if (linkedItems.length > 0) {
+      return res.status(400).json({
+        message:
+          "Category cannot be deleted because it is linked to existing items",
+      });
+    }
     const deleteExistingCategory = await Categories.findByIdAndDelete(id);
     if (!deleteExistingCategory) {
       return res
