@@ -1,5 +1,6 @@
 const Items = require("./model");
 const mongoose = require("mongoose");
+const Categories = require("../catagary/model");
 async function handleAddItems(req, res) {
   const { categoryId } = req.query;
 
@@ -74,15 +75,22 @@ async function handleAddItems(req, res) {
 
 async function handleGetItems(req, res) {
   try {
-    const items = await Items.find({ isDeleted: false });
+    const items = await Items.find({ isDeleted: false }).populate(
+      "categoryId",
+      "name"
+    );
 
     const filteredItems = items.map((item) => {
       const filteredVariants = item.variants.filter(
         (variant) => !variant.isDeleted
       );
-
+      const { _id: categoryId, name: categoryName } = item.categoryId;
       return {
-        ...item.toObject(),
+        _id: item._id,
+        categoryId,
+        categoryName,
+        name: item.name,
+        retailPrice: item.retailPrice,
         variants: filteredVariants,
       };
     });
