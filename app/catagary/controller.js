@@ -27,7 +27,7 @@ async function handelAddCategory(req, res) {
       .status(201)
       .json({ message: "Category created successfully", newCategory });
   } catch (error) {
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Internal server error", error });
   }
 }
 
