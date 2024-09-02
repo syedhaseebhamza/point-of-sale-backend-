@@ -6,7 +6,7 @@ async function handelAddCategory(req, res) {
   if (!name || !description) {
     return res
       .status(400)
-      .send(`${name}  and ${description} fields are required`);
+      .json({ message: "Name and description are required" });
   }
   try {
     const existingCategory = await Categories.findOne({ name });
