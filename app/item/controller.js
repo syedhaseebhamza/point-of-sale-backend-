@@ -1,6 +1,5 @@
 const Items = require("./model");
 const mongoose = require("mongoose");
-const Categories = require("../catagary/model");
 async function handleAddItems(req, res) {
   const { categoryId } = req.query;
 
@@ -74,11 +73,30 @@ async function handleAddItems(req, res) {
 }
 
 async function handleGetItems(req, res) {
+  const { categoryId } = req.query;
+
+  if (categoryId && !mongoose.Types.ObjectId.isValid(categoryId)) {
+    return res.status(400).json({ message: "Invalid Category ID" });
+  }
+
   try {
-    const items = await Items.find({ isDeleted: false }).populate(
-      "categoryId",
-      "name"
-    );
+    const query = {
+      isDeleted: false,
+    };
+
+    if (categoryId) {
+      query.categoryId = categoryId;
+    }
+    
+    const items = await Items.find(query).populate("categoryId", "name");
+
+    if (items.length === 0) {
+      return res.status(404).json({
+        message: categoryId
+          ? "No items found for the given categoryId"
+          : "No items found",
+      });
+    }
 
     const filteredItems = items.map((item) => {
       const filteredVariants = item.variants.filter(
@@ -94,11 +112,21 @@ async function handleGetItems(req, res) {
         variants: filteredVariants,
       };
     });
-    res
-      .status(200)
-      .json({ message: "Items retrieved successfully", items: filteredItems });
+
+    const response = categoryId
+      ? {
+          items: filteredItems,
+        }
+      : { items: filteredItems };
+
+    res.status(200).json({
+      message: categoryId
+        ? "Items retrieved successfully for the given categoryId"
+        : "Items retrieved successfully",
+      ...response,
+    });
   } catch (error) {
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Internal server error", error });
   }
 }
 
