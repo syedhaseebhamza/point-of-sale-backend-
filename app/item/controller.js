@@ -7,17 +7,29 @@ async function handleAddItems(req, res) {
     return res.status(400).json({ message: "Invalid ID" });
   }
 
-  const { categoryName, name, retailPrice, variants } = req.body;
+  const { categoryName, name, retailPrice } = req.body;
+  let { variants } = req.body;
+
+
+  if (typeof variants === 'string') {
+    try {
+      variants = JSON.parse(variants);
+    } catch (error) {
+      return res.status(400).json({ message: "Invalid JSON format for variants" });
+    }
+  }
+
   if (
     !categoryName ||
     !name ||
     !variants ||
+    
     !Array.isArray(variants) ||
     variants.length === 0
   ) {
     return res.status(400).json({
       message:
-        "categoryName, name, and variants are required, and variants must be a non-empty array",
+        "categoryName, name, image, and variants are required, and variants must be a non-empty array",
     });
   }
 
@@ -62,6 +74,9 @@ async function handleAddItems(req, res) {
       categoryName,
       name,
       retailPrice,
+      image: req.file
+        ? `${req.protocol}://${req.get("host")}/public/${req.file.filename}`
+        : null,
       variants,
     });
 
@@ -87,7 +102,7 @@ async function handleGetItems(req, res) {
     if (categoryId) {
       query.categoryId = categoryId;
     }
-    
+
     const items = await Items.find(query).populate("categoryId", "name");
 
     if (items.length === 0) {
@@ -108,6 +123,7 @@ async function handleGetItems(req, res) {
         categoryId,
         categoryName,
         name: item.name,
+        image: item.image,
         retailPrice: item.retailPrice,
         variants: filteredVariants,
       };

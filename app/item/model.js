@@ -20,6 +20,10 @@ const itemSchema = new mongoose.Schema({
     type: Number,
     required: false,
   },
+  image: {
+    type: String,
+    default:null,
+  },
   variants: [
     {
       size: {
