@@ -2,23 +2,56 @@ const Sales = require("./model");
 const mongoose = require("mongoose");
 
 async function placeOrder(req, res) {
-  const { productId, categoryId } = req.query;
-
-  if (!mongoose.Types.ObjectId.isValid(productId)) {
-    return res.status(400).json({ message: "Invalid ProductId" });
-  }
-  if (!mongoose.Types.ObjectId.isValid(categoryId)) {
-    return res.status(400).json({ message: "Invalid CategoryId" });
-  }
-
-  const { orderdetails, totalPrice } = req.body;
+  const { categoryData, productData, totalPrice } = req.body;
 
   if (
-    !orderdetails ||
-    !Array.isArray(orderdetails) ||
-    orderdetails.length === 0
+    !categoryData ||
+    !Array.isArray(categoryData) ||
+    categoryData.length === 0
   ) {
-    return res.status(400).json({ message: "Invalid or empty orderdetails" });
+    return res.status(400).json({ message: "Invalid or empty categoryData" });
+  }
+
+  for (let i = 0; i < categoryData.length; i++) {
+    const category = categoryData[i];
+
+    if (!category.categoryName) {
+      return res
+        .status(400)
+        .json({ message: `CategoryName is required for category ${i + 1}` });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(category.categoryId)) {
+      return res
+        .status(400)
+        .json({ message: `Invalid CategoryId for category ${i + 1}` });
+    }
+  }
+
+  if (!productData || !Array.isArray(productData) || productData.length === 0) {
+    return res.status(400).json({ message: "Invalid or empty productData" });
+  }
+
+  for (let i = 0; i < productData.length; i++) {
+    const product = productData[i];
+
+    if (!mongoose.Types.ObjectId.isValid(product.productId)) {
+      return res
+        .status(400)
+        .json({ message: `Invalid ProductId for product ${i + 1}` });
+    }
+
+    if (!product.productName) {
+      return res
+        .status(400)
+        .json({ message: `ProductName is required for product ${i + 1}` });
+    }
+
+    if (typeof product.productQuantity !== "number") {
+      return res.status(400).json({
+        message: `ProductQuantity must be a number for product ${i + 1}`,
+      });
+    }
   }
 
   if (typeof totalPrice !== "number") {
@@ -28,27 +61,10 @@ async function placeOrder(req, res) {
     return res.status(400).json({ message: "TotalPrice is required" });
   }
 
-  for (let i = 0; i < orderdetails.length; i++) {
-    const detail = orderdetails[i];
-
-    if (!detail.productName) {
-      return res
-        .status(400)
-        .json({ message: `ProductName is required for item ${i + 1}` });
-    }
-
-    if (typeof detail.productQuantity !== "number") {
-      return res.status(400).json({
-        message: `ProductQuantity must be a number for item ${i + 1}`,
-      });
-    }
-  }
-
   try {
     const newOrder = new Sales({
-      productId,
-      categoryId,
-      orderdetails,
+      categoryData,
+      productData,
       totalPrice,
     });
 
