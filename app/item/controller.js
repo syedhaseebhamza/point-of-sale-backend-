@@ -10,12 +10,13 @@ async function handleAddItems(req, res) {
   const { categoryName, name, retailPrice } = req.body;
   let { variants } = req.body;
 
-
-  if (typeof variants === 'string') {
+  if (typeof variants === "string") {
     try {
       variants = JSON.parse(variants);
     } catch (error) {
-      return res.status(400).json({ message: "Invalid JSON format for variants" });
+      return res
+        .status(400)
+        .json({ message: "Invalid JSON format for variants" });
     }
   }
 
@@ -23,7 +24,6 @@ async function handleAddItems(req, res) {
     !categoryName ||
     !name ||
     !variants ||
-    
     !Array.isArray(variants) ||
     variants.length === 0
   ) {
@@ -105,14 +105,6 @@ async function handleGetItems(req, res) {
 
     const items = await Items.find(query).populate("categoryId", "name");
 
-    if (items.length === 0) {
-      return res.status(404).json({
-        message: categoryId
-          ? "No items found for the given categoryId"
-          : "No items found",
-      });
-    }
-
     const filteredItems = items.map((item) => {
       const filteredVariants = item.variants.filter(
         (variant) => !variant.isDeleted
@@ -129,17 +121,15 @@ async function handleGetItems(req, res) {
       };
     });
 
-    const response = categoryId
-      ? {
-          items: filteredItems,
-        }
-      : { items: filteredItems };
-
     res.status(200).json({
       message: categoryId
-        ? "Items retrieved successfully for the given categoryId"
+        ? ` ${
+            items.length === 0
+              ? "No Item Found form this categoryID"
+              : "Items retrieved successfully for the given categoryId"
+          }`
         : "Items retrieved successfully",
-      ...response,
+      items: filteredItems,
     });
   } catch (error) {
     res.status(500).json({ message: "Internal server error", error });
