@@ -1,16 +1,24 @@
 const mongoose = require("mongoose");
 
 const salesSchema = new mongoose.Schema({
-  productId: {
-    type: mongoose.Schema.Types.ObjectId,
-    required: true,
-  },
-  categoryId: {
-    type: mongoose.Schema.Types.ObjectId,
-    required: true,
-  },
-  orderdetails: [
+  categoryData: [
     {
+      categoryName: {
+        type: String,
+        required: true,
+      },
+      categoryId: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+      },
+    },
+  ],
+  productData: [
+    {
+      productId: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+      },
       productName: {
         type: String,
         required: true,
@@ -42,6 +50,10 @@ const salesSchema = new mongoose.Schema({
     required: true,
   },
   isDeleted: {
+    type: Boolean,
+    default: false,
+  },
+  isDraft: {
     type: Boolean,
     default: false,
   },
