@@ -1,6 +1,5 @@
 const Items = require("./model");
 const mongoose = require("mongoose");
-const Categories = require("../catagary/model");
 async function handleAddItems(req, res) {
   const { categoryId } = req.query;
 
@@ -8,7 +7,19 @@ async function handleAddItems(req, res) {
     return res.status(400).json({ message: "Invalid ID" });
   }
 
-  const { categoryName, name, retailPrice, variants } = req.body;
+  const { categoryName, name, retailPrice } = req.body;
+  let { variants } = req.body;
+
+  if (typeof variants === "string") {
+    try {
+      variants = JSON.parse(variants);
+    } catch (error) {
+      return res
+        .status(400)
+        .json({ message: "Invalid JSON format for variants" });
+    }
+  }
+
   if (
     !categoryName ||
     !name ||
@@ -18,7 +29,7 @@ async function handleAddItems(req, res) {
   ) {
     return res.status(400).json({
       message:
-        "categoryName, name, and variants are required, and variants must be a non-empty array",
+        "categoryName, name, image, and variants are required, and variants must be a non-empty array",
     });
   }
 
@@ -63,6 +74,9 @@ async function handleAddItems(req, res) {
       categoryName,
       name,
       retailPrice,
+      image: req.file
+        ? `${req.protocol}://${req.get("host")}/public/${req.file.filename}`
+        : null,
       variants,
     });
 
@@ -74,11 +88,22 @@ async function handleAddItems(req, res) {
 }
 
 async function handleGetItems(req, res) {
+  const { categoryId } = req.query;
+
+  if (categoryId && !mongoose.Types.ObjectId.isValid(categoryId)) {
+    return res.status(400).json({ message: "Invalid Category ID" });
+  }
+
   try {
-    const items = await Items.find({ isDeleted: false }).populate(
-      "categoryId",
-      "name"
-    );
+    const query = {
+      isDeleted: false,
+    };
+
+    if (categoryId) {
+      query.categoryId = categoryId;
+    }
+
+    const items = await Items.find(query).populate("categoryId", "name");
 
     const filteredItems = items.map((item) => {
       const filteredVariants = item.variants.filter(
@@ -90,15 +115,24 @@ async function handleGetItems(req, res) {
         categoryId,
         categoryName,
         name: item.name,
+        image: item.image,
         retailPrice: item.retailPrice,
         variants: filteredVariants,
       };
     });
-    res
-      .status(200)
-      .json({ message: "Items retrieved successfully", items: filteredItems });
+
+    res.status(200).json({
+      message: categoryId
+        ? ` ${
+            items.length === 0
+              ? "No Item Found form this categoryID"
+              : "Items retrieved successfully for the given categoryId"
+          }`
+        : "Items retrieved successfully",
+      items: filteredItems,
+    });
   } catch (error) {
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Internal server error", error });
   }
 }
 
