@@ -19,10 +19,6 @@ const salesSchema = new mongoose.Schema({
         type: Number,
         required: true,
       },
-      totalPrice: {
-        type: Number,
-        required: true,
-      },
       productDiscount: {
         type: Number,
         default: null,
@@ -31,9 +27,8 @@ const salesSchema = new mongoose.Schema({
         {
           size: {
             type: String,
-            required: true,
+            required: false,
           },
-
         },
       ],
       isDeleted: {
@@ -41,8 +36,11 @@ const salesSchema = new mongoose.Schema({
         default: false,
       },
     },
-    
   ],
+  totalPrice: {
+    type: Number,
+    required: true,
+  },
   isDeleted: {
     type: Boolean,
     default: false,
