@@ -1,8 +1,10 @@
 const Sales = require("./model");
 const mongoose = require("mongoose");
+const Categories = require("../catagary/model");
+const Items = require("../item/model"); // Make sure to import your Item model
 
-async function placeOrder(req, res) {
-  const { categoryData, productData, totalPrice } = req.body;
+async function handlePlaceOrder(req, res) {
+  const { categoryData, productData, totalPrice, discount } = req.body;
 
   if (
     !categoryData ||
@@ -12,34 +14,71 @@ async function placeOrder(req, res) {
     return res.status(400).json({ message: "Invalid or empty categoryData" });
   }
 
-  for (let i = 0; i < categoryData.length; i++) {
-    const category = categoryData[i];
+  const categoryIds = categoryData?.map((category) => category.categoryId);
+  const invalidCategoryIds = categoryIds.filter(
+    (id) => !mongoose.Types.ObjectId.isValid(id)
+  );
 
-    if (!category.categoryName) {
-      return res
-        .status(400)
-        .json({ message: `CategoryName is required for category ${i + 1}` });
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(category.categoryId)) {
-      return res
-        .status(400)
-        .json({ message: `Invalid CategoryId for category ${i + 1}` });
-    }
+  if (invalidCategoryIds.length > 0) {
+    return res.status(400).json({
+      message: `Invalid CategoryId(s): ${invalidCategoryIds.join(", ")}`,
+    });
   }
+
+  const existingCategories = await Categories.find({
+    _id: { $in: categoryIds },
+  });
+
+  const existingCategoryIds = existingCategories.map((category) =>
+    category._id.toString()
+  );
+  const notFoundCategoryIds = categoryIds.filter(
+    (id) => !existingCategoryIds.includes(id)
+  );
+
+  if (notFoundCategoryIds.length > 0) {
+    return res.status(404).json({
+      message: `CategoryId(s) not found: ${notFoundCategoryIds.join(", ")}`,
+    });
+  }
+
+  const transformedCategoryData = existingCategories.map((category) => ({
+    categoryId: category._id,
+    categoryName: category.name,
+  }));
 
   if (!productData || !Array.isArray(productData) || productData.length === 0) {
     return res.status(400).json({ message: "Invalid or empty productData" });
   }
 
+  const productIds = productData.map((product) => product.productId);
+  const invalidProductIds = productIds.filter(
+    (id) => !mongoose.Types.ObjectId.isValid(id)
+  );
+
+  if (invalidProductIds.length > 0) {
+    return res.status(400).json({
+      message: `Invalid ProductId(s): ${invalidProductIds.join(", ")}`,
+    });
+  }
+
+  const existingItems = await Items.find({
+    _id: { $in: productIds },
+  });
+
+  const existingItemIds = existingItems.map((item) => item._id.toString());
+  const notFoundProductIds = productIds.filter(
+    (id) => !existingItemIds.includes(id)
+  );
+
+  if (notFoundProductIds.length > 0) {
+    return res.status(404).json({
+      message: `ProductId(s) not found: ${notFoundProductIds.join(", ")}`,
+    });
+  }
+
   for (let i = 0; i < productData.length; i++) {
     const product = productData[i];
-
-    if (!mongoose.Types.ObjectId.isValid(product.productId)) {
-      return res
-        .status(400)
-        .json({ message: `Invalid ProductId for product ${i + 1}` });
-    }
 
     if (!product.productName) {
       return res
@@ -54,31 +93,33 @@ async function placeOrder(req, res) {
     }
   }
 
-  if (typeof totalPrice !== "number") {
-    return res.status(400).json({ message: "TotalPrice must be a number" });
+  if (typeof totalPrice !== "number" || totalPrice == null) {
+    return res
+      .status(400)
+      .json({ message: "TotalPrice must be a valid number" });
   }
-  if (totalPrice == null) {
-    return res.status(400).json({ message: "TotalPrice is required" });
+
+
+  if (typeof discount !== "number") {
+    return res.status(400).json({ message: "Discount must be a number" });
   }
 
   try {
     const newOrder = new Sales({
-      categoryData,
+      categoryData: transformedCategoryData,
       productData,
       totalPrice,
+      discount,
     });
-
     await newOrder.save();
     return res
       .status(201)
-      .json({ message: "Order placed successfully", order: newOrder });
+      .json({ message: "Order placed successfully", newOrder });
   } catch (error) {
-    return res
-      .status(500)
-      .json({ message: "Error placing order", error: error.message });
+    return res.status(500).json({ message: "Error placing order", error });
   }
 }
 
 module.exports = {
-  placeOrder,
+  handlePlaceOrder,
 };

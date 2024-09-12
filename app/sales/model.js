@@ -3,21 +3,18 @@ const mongoose = require("mongoose");
 const salesSchema = new mongoose.Schema({
   categoryData: [
     {
-      categoryName: {
-        type: String,
-        required: true,
-      },
       categoryId: {
         type: mongoose.Schema.Types.ObjectId,
-        required: true,
+        ref: "Categories",
       },
     },
   ],
+
   productData: [
     {
       productId: {
         type: mongoose.Schema.Types.ObjectId,
-        required: true,
+        ref: "Item",
       },
       productName: {
         type: String,
@@ -27,10 +24,7 @@ const salesSchema = new mongoose.Schema({
         type: Number,
         required: true,
       },
-      productDiscount: {
-        type: Number,
-        default: null,
-      },
+
       variants: [
         {
           size: {
@@ -45,6 +39,10 @@ const salesSchema = new mongoose.Schema({
       },
     },
   ],
+  discount: {
+    type: Number,
+    required: false,
+  },
   totalPrice: {
     type: Number,
     required: true,
