@@ -25,14 +25,11 @@ const salesSchema = new mongoose.Schema({
         required: true,
       },
 
-      variants: [
-        {
-          size: {
-            type: String,
-            required: false,
-          },
-        },
-      ],
+      variants: {
+        type: String,
+        required: true,
+      },
+
       isDeleted: {
         type: Boolean,
         default: false,

@@ -4,7 +4,7 @@ const Categories = require("../catagary/model");
 const Items = require("../item/model"); // Make sure to import your Item model
 
 async function handlePlaceOrder(req, res) {
-  const { categoryData, productData, totalPrice, discount } = req.body;
+  const { categoryData, productData, totalPrice, discount, isDraft } = req.body;
 
   if (
     !categoryData ||
@@ -91,6 +91,11 @@ async function handlePlaceOrder(req, res) {
         message: `ProductQuantity must be a number for product ${i + 1}`,
       });
     }
+    if (!product.variants) {
+      return res
+        .status(400)
+        .json({ message: `ProductName is required for product ${i + 1}` });
+    }
   }
 
   if (typeof totalPrice !== "number" || totalPrice == null) {
@@ -98,7 +103,6 @@ async function handlePlaceOrder(req, res) {
       .status(400)
       .json({ message: "TotalPrice must be a valid number" });
   }
-
 
   if (typeof discount !== "number") {
     return res.status(400).json({ message: "Discount must be a number" });
@@ -110,6 +114,7 @@ async function handlePlaceOrder(req, res) {
       productData,
       totalPrice,
       discount,
+      isDraft,
     });
     await newOrder.save();
     return res
@@ -120,6 +125,18 @@ async function handlePlaceOrder(req, res) {
   }
 }
 
+async function handelGetAllOrders(req, res) {
+  const { isDraft } = req.query;
+  try {
+   const query = isDraft ? { isDraft: true } : {};
+    const orders = await Sales.find(query);
+    return res.status(200).json({ message: "Orders fetched successfully", orders });
+  } catch (error) {
+    return res.status(500).json({ message: "Error fetching orders", error });
+  }
+}
+
 module.exports = {
   handlePlaceOrder,
+  handelGetAllOrders,
 };
