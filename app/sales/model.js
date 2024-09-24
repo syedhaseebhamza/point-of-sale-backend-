@@ -52,6 +52,10 @@ const salesSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  Date: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
 const Sales = mongoose.model("Sales", salesSchema);
