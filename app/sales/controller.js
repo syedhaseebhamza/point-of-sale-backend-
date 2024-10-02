@@ -86,6 +86,12 @@ async function handlePlaceOrder(req, res) {
         .json({ message: `ProductName is required for product ${i + 1}` });
     }
 
+    if(!product.productPrice) {
+      return res
+        .status(400)
+        .json({ message: `ProductPrice is required for product ${i + 1}` });
+    }
+
     if (typeof product.productQuantity !== "number") {
       return res.status(400).json({
         message: `ProductQuantity must be a number for product ${i + 1}`,
