@@ -4,6 +4,7 @@ const Categories = require("../catagary/model");
 const Items = require("../item/model"); // Make sure to import your Item model
 
 async function handlePlaceOrder(req, res) {
+  const user = await req.user;
   const { categoryData, productData, totalPrice, discount, isDraft } = req.body;
 
   if (
@@ -86,7 +87,7 @@ async function handlePlaceOrder(req, res) {
         .json({ message: `ProductName is required for product ${i + 1}` });
     }
 
-    if(!product.productPrice) {
+    if (!product.productPrice) {
       return res
         .status(400)
         .json({ message: `ProductPrice is required for product ${i + 1}` });
@@ -121,6 +122,7 @@ async function handlePlaceOrder(req, res) {
       totalPrice,
       discount,
       isDraft,
+      createdBy: user.userId
     });
     await newOrder.save();
     return res
@@ -133,16 +135,64 @@ async function handlePlaceOrder(req, res) {
 
 async function handelGetAllOrders(req, res) {
   const { isDraft } = req.query;
+  const user = await req.user;
   try {
-   const query = isDraft ? { isDraft: true } : {};
+    const query = isDraft ? { isDraft: true, isDeleted: false, createdBy: user.userId } : {
+      isDeleted: false,
+      createdBy: user.userId,
+      isDraft: false
+    };
     const orders = await Sales.find(query);
-    return res.status(200).json({ message: "Orders fetched successfully", orders });
+    return res
+      .status(200)
+      .json({ message: "Orders fetched successfully", orders });
   } catch (error) {
     return res.status(500).json({ message: "Error fetching orders", error });
+  }
+}
+
+// Handle to Update the Order
+async function handleUpdateOrder(req, res) {
+  const { id } = req.params;
+
+  try {
+    const updatedSale = await Sales.findByIdAndUpdate(
+      id,
+      { $set: req.body },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedSale) {
+      return res.status(404).json({ message: "Sale not found" });
+    }
+
+    res.status(200).json({ message: "Sale updated successfully", updatedSale });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error", error });
+  }
+}
+
+// Handle to Delete draft Order
+async function handleDeleteOrder(req, res) {
+  const { id } = req.params;
+  try {
+    const order = await Sales.findByIdAndUpdate(id,{isDeleted: true},{
+      new: true,
+      runValidators: true,
+    });
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+    return res.status(200).json({ message: "Order deleted successfully" });
+  } catch (error) {
+    return res.status(500).json({ message: "Error deleting order", error });
   }
 }
 
 module.exports = {
   handlePlaceOrder,
   handelGetAllOrders,
+  handleUpdateOrder,
+  handleDeleteOrder,
 };

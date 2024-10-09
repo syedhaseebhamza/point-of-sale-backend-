@@ -9,6 +9,8 @@ async function handleAddItems(req, res) {
 
   const { categoryName, name, retailPrice } = req.body;
   let { variants } = req.body;
+  const user = req.user
+  const created = user.userId
 
   if (typeof variants === "string") {
     try {
@@ -45,6 +47,7 @@ async function handleAddItems(req, res) {
     const existingItem = await Items.findOne({
       name,
       isDeleted: false,
+      createdBy: user.userId
     });
     if (existingItem) {
       return res
@@ -78,6 +81,7 @@ async function handleAddItems(req, res) {
         ? `${req.protocol}://${req.get("host")}/public/${req.file.filename}`
         : null,
       variants,
+      createdBy: created
     });
 
     await newItem.save();
@@ -89,6 +93,7 @@ async function handleAddItems(req, res) {
 
 async function handleGetItems(req, res) {
   const { categoryId } = req.query;
+  const user = req.user
 
   if (categoryId && !mongoose.Types.ObjectId.isValid(categoryId)) {
     return res.status(400).json({ message: "Invalid Category ID" });
@@ -97,6 +102,7 @@ async function handleGetItems(req, res) {
   try {
     const query = {
       isDeleted: false,
+      createdBy: user.userId
     };
 
     if (categoryId) {

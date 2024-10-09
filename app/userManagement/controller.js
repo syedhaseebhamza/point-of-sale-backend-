@@ -2,6 +2,8 @@ const newUser = require("./model");
 const bcrypt = require("bcryptjs");
 const mongoose = require("mongoose");
 async function addNewUser(req, res) {
+  const user = req.user;
+  const createdBy = user.userId
   const { username, password, role } = req.body;
   if ((!username, !password, !role)) {
     return res.status(200).json({ message: "All fields are required" });
@@ -16,6 +18,7 @@ async function addNewUser(req, res) {
       username,
       password: hashedPassword,
       role,
+      createdBy
     });
     await user.save();
     res.status(201).json({ message: "User created successfully" });

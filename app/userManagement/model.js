@@ -12,8 +12,12 @@ const addNewUserScheme = new mongoose.Schema({
     unique: true,
   },
   role: {
-    required: true,
     type: String,
+    required: true
+  },
+  createdBy: {
+    type: mongoose.Schema.ObjectId,
+    ref: "User",
   },
 });
 

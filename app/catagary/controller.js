@@ -2,6 +2,7 @@ const Categories = require("./model");
 const mongoose = require("mongoose");
 const Items = require("../item/model");
 async function handelAddCategory(req, res) {
+  const user = await req.user;
   const { name, description } = req.body;
   if (!name || !description) {
     return res
@@ -14,12 +15,13 @@ async function handelAddCategory(req, res) {
       return res.status(400).json({ message: "Category already exists" });
     }
 
-    const newCategory = new Categories({
+    const newCategory =  new Categories({
       name,
       description,
       image: req.file
         ? `${req.protocol}://${req.get("host")}/public/${req.file.filename}`
         : null,
+      createdBy: user.userId,
     });
 
     await newCategory.save();
@@ -33,7 +35,8 @@ async function handelAddCategory(req, res) {
 
 async function getAllCategory(req, res) {
   try {
-    const allCategory = await Categories.find({});
+    const user = await req.user;
+    const allCategory = await Categories.find({createdBy: user.userId});
     res.status(200).json({ categories: allCategory });
   } catch (error) {
     res.status(500).json({ message: "Internal server error" });

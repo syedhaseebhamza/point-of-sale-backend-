@@ -11,6 +11,10 @@ const usersPermissionSchema = new mongoose.Schema({
       required: true,
     },
   ],
+  createdBy: {
+    type: mongoose.Schema.ObjectId,
+    ref: "User",
+  },
 });
 
 const UsersPermission = mongoose.model(

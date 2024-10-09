@@ -9,12 +9,10 @@ const itemSchema = new mongoose.Schema({
   categoryName: {
     type: String,
     required: true,
-    unique: false,
   },
   name: {
     type: String,
     required: true,
-    unique: true,
   },
   retailPrice: {
     type: Number,
@@ -43,6 +41,10 @@ const itemSchema = new mongoose.Schema({
   isDeleted: {
     type: Boolean,
     default: false,
+  },
+  createdBy: {
+    type: mongoose.Schema.ObjectId,
+    ref: "User",
   },
 });
 const Items = mongoose.model("Item", itemSchema);

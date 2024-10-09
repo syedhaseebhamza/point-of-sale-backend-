@@ -13,7 +13,11 @@ const UserSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    default: "superadmin",
+    enum: ['superadmin', 'cashier']
+  },
+  createdBy: {
+    type: mongoose.Schema.ObjectId,
+    ref: "User",
   },
 });
 

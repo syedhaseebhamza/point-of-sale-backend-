@@ -60,6 +60,10 @@ const salesSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  createdBy: {
+    type: mongoose.Schema.ObjectId,
+    ref: "User",
+  },
 });
 
 const Sales = mongoose.model("Sales", salesSchema);

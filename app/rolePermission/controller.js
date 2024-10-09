@@ -2,6 +2,7 @@ require("dotenv").config();
 const UsersPermission = require("./model");
 
 async function handleAddPermission(req, res) {
+  const user = req.user;
   const { roleName } = req.params;
   const { moduleName, actionIds } = req.body;
   if (!roleName) {
@@ -14,6 +15,7 @@ async function handleAddPermission(req, res) {
     const newPermission = new UsersPermission({
       moduleName,
       actionIds,
+      createdBy: user.userId
     });
     await newPermission.save();
     res.status(201).json({ message: "Permission added successfully" });

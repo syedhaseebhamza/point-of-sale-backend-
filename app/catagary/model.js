@@ -13,6 +13,10 @@ const categoryModelSchema = new mongoose.Schema({
     type: String,
     default: null,
   },
+  createdBy: {
+    type: mongoose.Schema.ObjectId,
+    ref: "User",
+  },
 });
 
 const Categories = mongoose.model("Categories", categoryModelSchema);
