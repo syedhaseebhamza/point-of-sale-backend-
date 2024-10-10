@@ -1,7 +1,7 @@
 const Deals = require("./model");
 const mongoose = require("mongoose");
 
-
+// Handle to Add Deals
 async function handleAddDeals(req, res) {
   const { categoryId, categoryName, name, retailPrice, products } = req.body;
   const user = req.user;
@@ -87,7 +87,7 @@ async function handleAddDeals(req, res) {
   }
 }
 
-
+// Handle to Get Deals
 async function handleGetDeals(req, res) {
   const { categoryId } = req.query;
   const user = req.user;
@@ -134,11 +134,10 @@ async function handleGetDeals(req, res) {
     });
   } catch (error) {
     res.status(500).json({ message: "Internal server error", error });
-    console.log("get all", error)
   }
 }
 
-
+// Handle to Delete Deals
 async function deleteDeals(req, res) {
   const { id } = req.params;
 
@@ -166,7 +165,7 @@ async function deleteDeals(req, res) {
   }
 }
 
-
+// Handle to Update Deals
 async function handleUpdateDeals(req, res) {
   const { id } = req.params;
 
@@ -228,7 +227,6 @@ async function handleUpdateDeals(req, res) {
     res.status(500).json({ message: `Failed to update Deal with ID ${id}`, error });
   }
 }
-
 
 
 module.exports = {

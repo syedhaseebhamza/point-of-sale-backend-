@@ -1,5 +1,7 @@
 const Items = require("./model");
 const mongoose = require("mongoose");
+
+// Handle to Add Items
 async function handleAddItems(req, res) {
   const { categoryId } = req.query;
 
@@ -91,6 +93,7 @@ async function handleAddItems(req, res) {
   }
 }
 
+// Handle to Get Items
 async function handleGetItems(req, res) {
   const { categoryId } = req.query;
   const user = req.user
@@ -142,6 +145,7 @@ async function handleGetItems(req, res) {
   }
 }
 
+// Handle to Delete Item
 async function deleteItem(req, res) {
   const { id } = req.params;
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -165,6 +169,7 @@ async function deleteItem(req, res) {
   }
 }
 
+// Handle to Update Item
 async function handleUpdateItem(req, res) {
   const { id } = req.params;
   if (!mongoose.Types.ObjectId.isValid(id)) {

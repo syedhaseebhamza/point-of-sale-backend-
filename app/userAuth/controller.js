@@ -2,6 +2,8 @@ const User = require("./model");
 const newUser = require("../userManagement/model");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+
+// User Login Authentication
 async function login(req, res) {
   const { username, password } = req.body;
   if (!username || !password) {

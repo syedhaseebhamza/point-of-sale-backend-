@@ -1,6 +1,7 @@
 require("dotenv").config();
 const UsersPermission = require("./model");
 
+// Handle to Add Permission
 async function handleAddPermission(req, res) {
   const user = req.user;
   const { roleName } = req.params;

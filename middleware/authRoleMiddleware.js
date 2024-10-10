@@ -1,3 +1,5 @@
+
+// middleware to Authorize Role
 function authenticateRole(req,res,next){
     const user = req.user;
     if(!user){

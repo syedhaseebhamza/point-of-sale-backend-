@@ -1,8 +1,9 @@
 const Sales = require("./model");
 const mongoose = require("mongoose");
 const Categories = require("../catagary/model");
-const Items = require("../item/model"); // Make sure to import your Item model
+const Items = require("../item/model");
 
+// Handle to Place Order
 async function handlePlaceOrder(req, res) {
   const user = await req.user;
   const { categoryData, productData, totalPrice, discount, isDraft } = req.body;
@@ -133,6 +134,7 @@ async function handlePlaceOrder(req, res) {
   }
 }
 
+// Handle to Get All Orders
 async function handelGetAllOrders(req, res) {
   const { isDraft } = req.query;
   const user = await req.user;

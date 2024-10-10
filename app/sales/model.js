@@ -1,70 +1,75 @@
 const mongoose = require("mongoose");
 
-const salesSchema = new mongoose.Schema({
-  categoryData: [
-    {
-      categoryId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Categories",
+const salesSchema = new mongoose.Schema(
+  {
+    categoryData: [
+      {
+        categoryId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Categories",
+        },
       },
+    ],
+
+    productData: [
+      {
+        productId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Item",
+        },
+        productName: {
+          type: String,
+          required: true,
+        },
+        productQuantity: {
+          type: Number,
+          required: true,
+        },
+        productPrice: {
+          type: Number,
+          required: true,
+        },
+
+        variants: {
+          type: String,
+          required: true,
+        },
+
+        isDeleted: {
+          type: Boolean,
+          default: false,
+        },
+      },
+    ],
+    discount: {
+      type: Number,
+      required: false,
     },
-  ],
-
-  productData: [
-    {
-      productId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Item",
-      },
-      productName: {
-        type: String,
-        required: true,
-      },
-      productQuantity: {
-        type: Number,
-        required: true,
-      },
-      productPrice: {
-        type: Number,
-        required: true,
-      },
-
-      variants: {
-        type: String,
-        required: true,
-      },
-
-      isDeleted: {
-        type: Boolean,
-        default: false,
-      },
+    totalPrice: {
+      type: Number,
+      required: true,
     },
-  ],
-  discount: {
-    type: Number,
-    required: false,
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+    isDraft: {
+      type: Boolean,
+      default: false,
+    },
+    Date: {
+      type: Date,
+      default: Date.now,
+    },
+    createdBy: {
+      type: mongoose.Schema.ObjectId,
+      ref: "User",
+    },
   },
-  totalPrice: {
-    type: Number,
-    required: true,
-  },
-  isDeleted: {
-    type: Boolean,
-    default: false,
-  },
-  isDraft: {
-    type: Boolean,
-    default: false,
-  },
-  Date: {
-    type: Date,
-    default: Date.now,
-  },
-  createdBy: {
-    type: mongoose.Schema.ObjectId,
-    ref: "User",
-  },
-});
+  {
+    timestamps: true,
+  }
+);
 
 const Sales = mongoose.model("Sales", salesSchema);
 module.exports = Sales;

@@ -1,6 +1,8 @@
 const newUser = require("./model");
 const bcrypt = require("bcryptjs");
 const mongoose = require("mongoose");
+
+// Handle to Add New User
 async function addNewUser(req, res) {
   const user = req.user;
   const createdBy = user.userId
@@ -28,6 +30,7 @@ async function addNewUser(req, res) {
   }
 }
 
+// Handle to Get All User
 async function getAllUser(req, res) {
   try {
     const allUsers = await newUser.find({}, { password: 0 });
@@ -37,9 +40,10 @@ async function getAllUser(req, res) {
     res.status(500).json({ message: "Internal server error" });
   }
 }
+
+// Handle to Delete User
 async function deleteUser(req, res) {
-  const { id } = req.params; // jab hum req.query lagay gay yahan pay to postman mai ja kr params wala tab select kr wahan id deni ha then url ho ga  ?id=123 is trhn aye ga
-  // jab hum params lagay gay then hum router main b ja kr user/delete/:id dain gay or url mai user/subuser/12343 is thrn postman maim id aye gi
+  const { id } = req.params;
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(400).json({ message: "Invalid ID" });
   }
@@ -58,6 +62,8 @@ async function deleteUser(req, res) {
     res.status(500).json({ message: `Failed to delete product with ID ${id}` });
   }
 }
+
+// Handle to Update User
 async function handleEditUser(req, res) {
   const { id } = req.params;
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -65,8 +71,6 @@ async function handleEditUser(req, res) {
   }
 
   const { username, role } = req.body;
-
-  // Create an update object and only add properties that are not undefined or empty
   const updateData = {};
   if (username) updateData.username = username;
   if (role) updateData.role = role;

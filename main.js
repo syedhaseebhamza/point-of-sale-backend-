@@ -12,6 +12,9 @@ const saleRoutes = require("./app/sales/route.js");
 const dealRoutes = require("./app/deals/route.js")
 const app = express();
 
+let port = process.env.PORT || 4042;
+
+// Enable CORS for cross-origin requests
 app.use(
   cors({
     origin: "https://localhost:3000",
@@ -19,7 +22,7 @@ app.use(
   })
 );
 
-let port = process.env.PORT || 4042;
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use("/user", userRoutes);
@@ -30,6 +33,8 @@ app.use("/public", express.static(path.join(__dirname, "public")));
 app.use("/api", itemRoutes);
 app.use("/api", saleRoutes);
 app.use("/api", dealRoutes);
+
+// Connect to MongoDB database and start the server
 connectToDB()
   .then(() => {
     app.listen(port, () => console.log(`app listen on port ${port}`));

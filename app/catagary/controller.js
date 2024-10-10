@@ -1,6 +1,8 @@
 const Categories = require("./model");
 const mongoose = require("mongoose");
 const Items = require("../item/model");
+
+// Handle to Add Category 
 async function handelAddCategory(req, res) {
   const user = await req.user;
   const { name, description } = req.body;
@@ -33,6 +35,7 @@ async function handelAddCategory(req, res) {
   }
 }
 
+// Handle to Get All Categories
 async function getAllCategory(req, res) {
   try {
     const user = await req.user;
@@ -43,6 +46,7 @@ async function getAllCategory(req, res) {
   }
 }
 
+// Handle to Delete Category
 async function deleteCategory(req, res) {
   const { id } = req.params;
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -72,6 +76,7 @@ async function deleteCategory(req, res) {
   }
 }
 
+// Handle to Update Category
 async function handleUpdateCategory(req, res) {
   const { id } = req.params;
   if (!mongoose.Types.ObjectId.isValid(id)) {
