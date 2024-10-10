@@ -9,6 +9,7 @@ const userPermissionRoutes = require("./app/rolePermission/route.js");
 const catagaryRoutes = require("./app/catagary/route.js");
 const itemRoutes = require("./app/item/route.js");
 const saleRoutes = require("./app/sales/route.js");
+const dealRoutes = require("./app/deals/route.js")
 const app = express();
 
 app.use(
@@ -28,6 +29,7 @@ app.use("/api", catagaryRoutes);
 app.use("/public", express.static(path.join(__dirname, "public")));
 app.use("/api", itemRoutes);
 app.use("/api", saleRoutes);
+app.use("/api", dealRoutes);
 connectToDB()
   .then(() => {
     app.listen(port, () => console.log(`app listen on port ${port}`));
