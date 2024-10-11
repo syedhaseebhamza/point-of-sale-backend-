@@ -41,14 +41,12 @@ npm install
 
 ### Create a .env file in the root directory and add the necessary environment variables:
 
-PORT=<your_port>
-MONGO_URI=<your_mongodb_connection_string>
-JWT_SECRET=<your_jwt_secret>
-JWT_REFRESH_SECRET=<your_jwt_refresh_secret>
+- PORT=<your_port>
+- MONGO_URI=<your_mongodb_connection_string>
+- JWT_SECRET=<your_jwt_secret>
+- JWT_REFRESH_SECRET=<your_jwt_refresh_secret>
 
 
 ### To start the application:
 
-```sh
-npm run start
-```
+1. npm run start
