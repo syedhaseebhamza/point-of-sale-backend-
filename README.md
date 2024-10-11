@@ -34,7 +34,9 @@ This project is a backend application built using Node.js and Express. It serves
 
 ### Install the dependencies:
 
-1. npm install
+```sh
+npm install
+```
 
 
 ### Create a .env file in the root directory and add the necessary environment variables:
@@ -47,4 +49,6 @@ JWT_REFRESH_SECRET=<your_jwt_refresh_secret>
 
 ### To start the application:
 
-1. npm run start
+```sh
+npm run start
+```
