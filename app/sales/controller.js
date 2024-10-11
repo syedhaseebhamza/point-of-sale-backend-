@@ -69,15 +69,6 @@ async function handlePlaceOrder(req, res) {
   });
 
   const existingItemIds = existingItems.map((item) => item._id.toString());
-  const notFoundProductIds = productIds.filter(
-    (id) => !existingItemIds.includes(id)
-  );
-
-  if (notFoundProductIds.length > 0) {
-    return res.status(404).json({
-      message: `ProductId(s) not found: ${notFoundProductIds.join(", ")}`,
-    });
-  }
 
   for (let i = 0; i < productData.length; i++) {
     const product = productData[i];
@@ -98,11 +89,6 @@ async function handlePlaceOrder(req, res) {
       return res.status(400).json({
         message: `ProductQuantity must be a number for product ${i + 1}`,
       });
-    }
-    if (!product.variants) {
-      return res
-        .status(400)
-        .json({ message: `ProductName is required for product ${i + 1}` });
     }
   }
 
@@ -130,6 +116,7 @@ async function handlePlaceOrder(req, res) {
       .status(201)
       .json({ message: "Order placed successfully", newOrder });
   } catch (error) {
+    console.log(error)
     return res.status(500).json({ message: "Error placing order", error });
   }
 }

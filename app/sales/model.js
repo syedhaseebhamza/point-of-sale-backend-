@@ -32,7 +32,6 @@ const salesSchema = new mongoose.Schema(
 
         variants: {
           type: String,
-          required: true,
         },
 
         isDeleted: {
