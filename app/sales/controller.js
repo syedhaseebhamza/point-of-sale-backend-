@@ -109,33 +109,82 @@ async function handlePlaceOrder(req, res) {
       totalPrice,
       discount,
       isDraft,
-      createdBy: user.userId
+      createdBy: user.userId,
     });
     await newOrder.save();
     return res
       .status(201)
       .json({ message: "Order placed successfully", newOrder });
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return res.status(500).json({ message: "Error placing order", error });
   }
 }
 
 // Handle to Get All Orders
 async function handelGetAllOrders(req, res) {
-  const { isDraft } = req.query;
+  const { isDraft, date, page = 1, limit = 10 } = req.query;
   const user = await req.user;
+
   try {
-    const query = isDraft ? { isDraft: true, isDeleted: false, createdBy: user.userId } : {
-      isDeleted: false,
-      createdBy: user.userId,
-      isDraft: false
-    };
-    const orders = await Sales.find(query);
-    return res
-      .status(200)
-      .json({ message: "Orders fetched successfully", orders });
+    const query = isDraft
+      ? { isDraft: true, isDeleted: false, createdBy: user.userId }
+      : {
+          isDeleted: false,
+          createdBy: user.userId,
+          isDraft: false,
+        };
+
+    if (date) {
+      const startDate = new Date(date);
+
+      startDate.setUTCHours(0, 0, 0, 0);
+
+      const endDate = new Date(startDate);
+      endDate.setUTCHours(23, 59, 59, 999);
+
+      const startDatePKT = new Date(startDate.getTime() + 5 * 60 * 60 * 1000);
+      const endDatePKT = new Date(endDate.getTime() + 5 * 60 * 60 * 1000);
+      query.createdAt = {
+        $gte: startDatePKT,
+        $lte: endDatePKT,
+      };
+    }
+
+    const orders = await Sales.find(query).sort({ createdAt: -1 });
+
+    const allFilteredData = orders.flatMap((order) => order.productData);
+
+    let totalQuantity = 0;
+    let totalPrice = 0;
+
+    allFilteredData.forEach((product) => {
+      totalQuantity += product.productQuantity;
+      totalPrice += product.productPrice * product.productQuantity;
+    });
+
+    const discount = totalPrice * 0.1;
+    totalPrice -= discount;
+
+    const pageNumber = parseInt(page, 10);
+    const limitNumber = parseInt(limit, 10);
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const paginatedData = allFilteredData.slice(skip, skip + limitNumber);
+
+    const totalCount = allFilteredData.length;
+    const totalPages = Math.ceil(totalCount / limitNumber);
+
+    return res.status(200).json({
+      message: "Orders fetched successfully",
+      orders: paginatedData,
+      forExport: allFilteredData,
+      currentPage: pageNumber,
+      totalPages,
+      totalSale: totalPrice.toFixed(0),
+    });
   } catch (error) {
+    console.error(error);
     return res.status(500).json({ message: "Error fetching orders", error });
   }
 }
@@ -166,10 +215,14 @@ async function handleUpdateOrder(req, res) {
 async function handleDeleteOrder(req, res) {
   const { id } = req.params;
   try {
-    const order = await Sales.findByIdAndUpdate(id,{isDeleted: true},{
-      new: true,
-      runValidators: true,
-    });
+    const order = await Sales.findByIdAndUpdate(
+      id,
+      { isDeleted: true },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
     }
