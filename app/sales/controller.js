@@ -121,6 +121,25 @@ async function handlePlaceOrder(req, res) {
   }
 }
 
+// Handle to Get Draft Orders
+async function handelGetAllDraftOrders(req, res) {
+  const { isDraft } = req.query;
+  const user = await req.user;
+  try {
+    const query = isDraft ? { isDraft: true, isDeleted: false, createdBy: user.userId } : {
+      isDeleted: false,
+      createdBy: user.userId,
+      isDraft: false
+    };
+    const orders = await Sales.find(query);
+    return res
+      .status(200)
+      .json({ message: "Orders fetched successfully", orders });
+  } catch (error) {
+    return res.status(500).json({ message: "Error fetching orders", error });
+  }
+}
+
 // Handle to Get All Orders
 async function handelGetAllOrders(req, res) {
   const { isDraft, date, page = 1, limit = 10 } = req.query;
@@ -234,6 +253,7 @@ async function handleDeleteOrder(req, res) {
 
 module.exports = {
   handlePlaceOrder,
+  handelGetAllDraftOrders,
   handelGetAllOrders,
   handleUpdateOrder,
   handleDeleteOrder,
