@@ -44,6 +44,10 @@ const salesSchema = new mongoose.Schema(
         },
       },
     ],
+    orderId:{
+      type: String,
+      required: true
+    },
     discount: {
       type: Number,
       required: false,
@@ -59,6 +63,11 @@ const salesSchema = new mongoose.Schema(
     isDraft: {
       type: Boolean,
       default: false,
+    },
+    status:{
+      type: String,
+      enum: ['delivered','canceled'],
+      default: 'delivered'
     },
     Date: {
       type: Date,
