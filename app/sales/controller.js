@@ -2,11 +2,13 @@ const Sales = require("./model");
 const mongoose = require("mongoose");
 const Categories = require("../catagary/model");
 const Items = require("../item/model");
+const generateOrderId= require("../../utils/generateOrderID")
 
 // Handle to Place Order
 async function handlePlaceOrder(req, res) {
   const user = await req.user;
   const { categoryData, productData, totalPrice, discount, isDraft } = req.body;
+  const orderId = generateOrderId()
 
   if (
     !categoryData ||
@@ -109,6 +111,7 @@ async function handlePlaceOrder(req, res) {
       totalPrice,
       discount,
       isDraft,
+      orderId,
       createdBy: user.userId,
     });
     await newOrder.save();
@@ -156,57 +159,78 @@ async function handelGetAllOrders(req, res) {
 
     if (date) {
       const startDate = new Date(date);
-
       startDate.setUTCHours(0, 0, 0, 0);
-
+      
       const endDate = new Date(startDate);
       endDate.setUTCHours(23, 59, 59, 999);
-
+      
       const startDatePKT = new Date(startDate.getTime() + 5 * 60 * 60 * 1000);
       const endDatePKT = new Date(endDate.getTime() + 5 * 60 * 60 * 1000);
+      
       query.createdAt = {
         $gte: startDatePKT,
         $lte: endDatePKT,
       };
     }
 
-    const orders = await Sales.find(query).sort({ createdAt: -1 });
-
-    const allFilteredData = orders.flatMap((order) => order.productData);
-
-    let totalQuantity = 0;
-    let totalPrice = 0;
-
-    allFilteredData.forEach((product) => {
-      totalQuantity += product.productQuantity;
-      totalPrice += product.productPrice * product.productQuantity;
-    });
-
-    const discount = totalPrice * 0.1;
-    totalPrice -= discount;
-
     const pageNumber = parseInt(page, 10);
     const limitNumber = parseInt(limit, 10);
     const skip = (pageNumber - 1) * limitNumber;
 
-    const paginatedData = allFilteredData.slice(skip, skip + limitNumber);
+    const orders = await Sales.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNumber);
 
-    const totalCount = allFilteredData.length;
+      const querySale = {
+          isDeleted: false,
+          createdBy: user.userId,
+          isDraft: false,
+          status:"delivered"
+        };
+      
+    const totalOrders = await Sales.find(querySale).sort({createdAt: -1});
+    const totalSale = Math.round(totalOrders.reduce((sum, order) => sum + order.totalPrice, 0) * 100) / 100; 
+    const countOrders = await Sales.find(querySale).countDocuments();
+
+    const totalCount = totalOrders.length;
     const totalPages = Math.ceil(totalCount / limitNumber);
+
+    const formatTimeInPKT = (date) => {
+      const options = { 
+          hour: '2-digit', 
+          minute: '2-digit', 
+          hour12: true,
+          timeZone: 'Asia/Karachi'
+      };
+      return new Intl.DateTimeFormat('en-US', options).format(date);
+  };
+  
+  const formattedOrders = orders.map(order => ({
+      ...order.toObject(),
+      orderTime: formatTimeInPKT(order.createdAt),
+  }));
+
+  const formattedExportOrders = totalOrders.map(order => ({
+    ...order.toObject(),
+    orderTime: formatTimeInPKT(order.createdAt),
+}));
 
     return res.status(200).json({
       message: "Orders fetched successfully",
-      orders: paginatedData,
-      forExport: allFilteredData,
+      orders: formattedOrders,
+      forExport:formattedExportOrders,
+      totalSale,
+      countOrders,
       currentPage: pageNumber,
       totalPages,
-      totalSale: totalPrice.toFixed(0),
     });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Error fetching orders", error });
   }
 }
+
 
 // Handle to Update the Order
 async function handleUpdateOrder(req, res) {
