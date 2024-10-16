@@ -17,7 +17,7 @@ let port = process.env.PORT || 4042;
 // Enable CORS for cross-origin requests
 app.use(
   cors({
-    origin: "https://localhost:3000",
+    origin: process.env.NODE_ENV === "production" ? "https://your-frontend-url.vercel.app" : "http://localhost:3000",
     optionsSuccessStatus: 200,
   })
 );
