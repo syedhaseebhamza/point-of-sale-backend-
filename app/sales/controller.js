@@ -188,6 +188,22 @@ async function handelGetAllOrders(req, res) {
           isDraft: false,
           status:"delivered"
         };
+
+        if (date) {
+          const startDate = new Date(date);
+          startDate.setUTCHours(0, 0, 0, 0);
+          
+          const endDate = new Date(startDate);
+          endDate.setUTCHours(23, 59, 59, 999);
+          
+          const startDatePKT = new Date(startDate.getTime() + 5 * 60 * 60 * 1000);
+          const endDatePKT = new Date(endDate.getTime() + 5 * 60 * 60 * 1000);
+          
+          querySale.createdAt = {
+            $gte: startDatePKT,
+            $lte: endDatePKT,
+          };
+        }
       
     const totalOrders = await Sales.find(querySale).sort({createdAt: -1});
     const totalSale = Math.round(totalOrders.reduce((sum, order) => sum + order.totalPrice, 0) * 100) / 100; 
