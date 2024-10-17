@@ -15,26 +15,25 @@ const app = express();
 let port = process.env.PORT || 4042;
 
 const allowedOrigins = [
-  "https://your-frontend-url.vercel.app", 
+  "https://point-of-sale-front-end-qk9p.vercel.app", 
   "http://localhost:3000",                 
   "http://127.0.0.1:3000",              
 
 ];
 
-
 app.use(cors({
   origin: function (origin, callback) {
     if (!origin) return callback(null, true);
-
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error("Not allowed by CORS"));
     }
   },
-  credentials: true, 
+  credentials: true,
   optionsSuccessStatus: 200
 }));
+
 
 
 app.use(express.json());
