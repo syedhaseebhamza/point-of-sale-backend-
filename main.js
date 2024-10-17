@@ -14,26 +14,13 @@ const app = express();
 
 let port = process.env.PORT || 4042;
 
-const allowedOrigins = [
-  "https://point-of-sale-front-end-qk9p.vercel.app", 
-  "http://localhost:3000",                 
-  "http://127.0.0.1:3000",              
-
-];
-
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  credentials: true,
-  optionsSuccessStatus: 200
-}));
-
+// Enable CORS for cross-origin requests
+app.use(
+  cors({
+    origin: process.env.NODE_ENV === "production" ? "https://point-of-sale-front-end-qk9p.vercel.app                                                                                                                                                                                                                                                                                                                                                                                                                                                                              " : "http://localhost:3000",
+    optionsSuccessStatus: 200,
+  })
+);
 
 
 app.use(express.json());
