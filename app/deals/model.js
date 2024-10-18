@@ -25,7 +25,7 @@ const dealSchema = new mongoose.Schema(
     },
     public_id: {
       type: String,
-      required: true,
+      default:null,
     },
     products: [
       {

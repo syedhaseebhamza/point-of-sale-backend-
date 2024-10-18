@@ -1,6 +1,5 @@
 const Deals = require("./model");
 const mongoose = require("mongoose");
-const cloudinary = require("cloudinary").v2;
 
 // Handle to Add Deals
 async function handleAddDeals(req, res) {

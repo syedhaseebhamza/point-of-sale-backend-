@@ -1,6 +1,5 @@
 const Items = require("./model");
 const mongoose = require("mongoose");
-const cloudinary = require("cloudinary").v2;
 
 // Handle to Add Items
 async function handleAddItems(req, res) {
