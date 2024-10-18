@@ -31,7 +31,6 @@ async function handelAddCategory(req, res) {
       .status(201)
       .json({ message: "Category created successfully", newCategory });
   } catch (error) {
-    console.log("category error", error)
     res.status(500).json({ message: "Internal server error", error });
   }
 }
@@ -68,7 +67,9 @@ async function deleteCategory(req, res) {
         .json({ message: `Category with ID ${id} not found` });
     }
 
-    await cloudinary.uploader.destroy(existingCategory.public_id);
+    if (existingCategory.public_id) {
+      await cloudinary.uploader.destroy(existingCategory.public_id);
+    }
 
     const deleteExistingCategory = await Categories.findByIdAndDelete(id);
     if (!deleteExistingCategory) {
@@ -80,6 +81,7 @@ async function deleteCategory(req, res) {
       .status(200)
       .json({ message: `Category with ID ${id} deleted successfully` });
   } catch (error) {
+    console.log(error);
     res
       .status(500)
       .json({ message: `Failed to delete category with ID ${id}` });
@@ -98,11 +100,11 @@ async function handleUpdateCategory(req, res) {
   if (req.body.description) updateData.description = req.body.description;
   const existingCategory = await Categories.findById(id);
   if (req.file) {
-     if (existingCategory.public_id) {
-        await cloudinary.uploader.destroy(existingCategory.public_id); 
-      }
-      updateData.image = req.file.path;
-      updateData.public_id = req.file.filename;
+    if (existingCategory.public_id) {
+      await cloudinary.uploader.destroy(existingCategory.public_id);
+    }
+    updateData.image = req.file.path;
+    updateData.public_id = req.file.filename;
   }
 
   if (Object.keys(updateData).length === 0) {
@@ -124,7 +126,7 @@ async function handleUpdateCategory(req, res) {
       .status(200)
       .json({ message: "Category updated successfully", updateCategory });
   } catch (error) {
-    console.log(error)
+    console.log(error);
     res.status(500).json({ message: "Internal server error" });
   }
 }
