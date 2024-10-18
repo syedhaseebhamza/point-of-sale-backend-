@@ -23,6 +23,10 @@ const dealSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    public_id: {
+      type: String,
+      required: true,
+    },
     products: [
       {
         productId: {

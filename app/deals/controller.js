@@ -1,5 +1,6 @@
 const Deals = require("./model");
 const mongoose = require("mongoose");
+const cloudinary = require("cloudinary").v2;
 
 // Handle to Add Deals
 async function handleAddDeals(req, res) {
@@ -18,16 +19,24 @@ async function handleAddDeals(req, res) {
     return res.status(400).json({ message: "Invalid products format" });
   }
 
-  if (!categoryName || !name || !parsedProducts || !Array.isArray(parsedProducts) || parsedProducts.length === 0) {
+  if (
+    !categoryName ||
+    !name ||
+    !parsedProducts ||
+    !Array.isArray(parsedProducts) ||
+    parsedProducts.length === 0
+  ) {
     return res.status(400).json({
-      message: "categoryName, name, and products are required, and products must be a non-empty array",
+      message:
+        "categoryName, name, and products are required, and products must be a non-empty array",
     });
   }
 
   for (const product of parsedProducts) {
     if (!product.productId || !product.productQuantity || !product.salePrice) {
       return res.status(400).json({
-        message: "Each product must have productId, productQuantity, and salePrice",
+        message:
+          "Each product must have productId, productQuantity, and salePrice",
       });
     }
   }
@@ -36,11 +45,13 @@ async function handleAddDeals(req, res) {
     const existingDeal = await Deals.findOne({
       name,
       isDeleted: false,
-      createdBy
+      createdBy,
     });
 
     if (existingDeal) {
-      return res.status(400).json({ message: "Deal with this name already exists" });
+      return res
+        .status(400)
+        .json({ message: "Deal with this name already exists" });
     }
 
     const softDeletedDeal = await Deals.findOne({
@@ -59,12 +70,13 @@ async function handleAddDeals(req, res) {
       softDeletedDeal.products = parsedProducts;
       softDeletedDeal.totalPrice = totalPrice;
       softDeletedDeal.categoryId = categoryId;
-      softDeletedDeal.image = req.file
-        ? `${req.protocol}://${req.get("host")}/public/${req.file.filename}`
-        : softDeletedDeal.image;
+      softDeletedDeal.image = req.file ? req.file.path : softDeletedDeal.image;
+      softDeletedDeal.public_id = req.file? req.file.filename : softDeletedDeal.public_id;
       await softDeletedDeal.save();
 
-      return res.status(200).json({ message: "Deal restored successfully", deal: softDeletedDeal });
+      return res
+        .status(200)
+        .json({ message: "Deal restored successfully", deal: softDeletedDeal });
     }
 
     const newDeal = new Deals({
@@ -75,9 +87,8 @@ async function handleAddDeals(req, res) {
       products: parsedProducts,
       createdBy,
       totalPrice,
-      image: req.file
-        ? `${req.protocol}://${req.get("host")}/public/${req.file.filename}`
-        : null
+      image: req.file ? req.file.path : null,
+      public_id: req.file ? req.file.filename : null,
     });
 
     await newDeal.save();
@@ -98,7 +109,7 @@ async function handleGetDeals(req, res) {
   try {
     const query = {
       isDeleted: false,
-      createdBy: user.userId
+      createdBy: user.userId,
     };
 
     if (categoryId) {
@@ -108,8 +119,11 @@ async function handleGetDeals(req, res) {
     const deals = await Deals.find(query).populate("categoryId", "name");
 
     const filteredDeals = deals.map((deal) => {
-      const filteredProducts = deal.products.filter(product => !product.isDeleted);
-      const { _id: categoryId, name: categoryName } = deal.categoryId;
+      const filteredProducts = deal.products.filter(
+        (product) => !product.isDeleted
+      );
+      const categoryId = deal.categoryId ? deal.categoryId._id : null;
+      const categoryName = deal.categoryId ? deal.categoryId.name : null;
       return {
         _id: deal._id,
         categoryId,
@@ -133,6 +147,7 @@ async function handleGetDeals(req, res) {
       deals: filteredDeals,
     });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: "Internal server error", error });
   }
 }
@@ -161,7 +176,9 @@ async function deleteDeals(req, res) {
       deletedDeal,
     });
   } catch (error) {
-    res.status(500).json({ message: `Failed to delete Deal with ID ${id}`, error });
+    res
+      .status(500)
+      .json({ message: `Failed to delete Deal with ID ${id}`, error });
   }
 }
 
@@ -182,8 +199,14 @@ async function handleUpdateDeals(req, res) {
     return res.status(400).json({ message: "Invalid products format" });
   }
 
-  if (!categoryName && !name && !retailPrice && 
-      (!parsedProducts || !Array.isArray(parsedProducts) || parsedProducts.length === 0)) {
+  if (
+    !categoryName &&
+    !name &&
+    !retailPrice &&
+    (!parsedProducts ||
+      !Array.isArray(parsedProducts) ||
+      parsedProducts.length === 0)
+  ) {
     return res.status(400).json({
       message: "At least one field must be provided for an update",
     });
@@ -199,35 +222,44 @@ async function handleUpdateDeals(req, res) {
     if (categoryName) deal.categoryName = categoryName;
     if (name) deal.name = name;
     if (retailPrice) deal.retailPrice = retailPrice;
-    if (parsedProducts && Array.isArray(parsedProducts) && parsedProducts.length > 0) {
-      deal.products = parsedProducts.map(product => {
-        const existingProduct = deal.products.find(p => p.productId === product.productId);
-        
+    if (
+      parsedProducts &&
+      Array.isArray(parsedProducts) &&
+      parsedProducts.length > 0
+    ) {
+      deal.products = parsedProducts.map((product) => {
+        const existingProduct = deal.products.find(
+          (p) => p.productId === product.productId
+        );
+
         return {
           productId: product.productId,
           productQuantity: product.productQuantity,
-          salePrice: product.salePrice !== undefined ? product.salePrice : existingProduct.salePrice,
+          salePrice:
+            product.salePrice !== undefined
+              ? product.salePrice
+              : existingProduct.salePrice,
         };
       });
-    
+
       deal.totalPrice = deal.products.reduce((total, product) => {
-        return total + (product.salePrice * product.productQuantity);
+        return total + product.salePrice * product.productQuantity;
       }, 0);
     }
 
-    deal.image = req.file
-      ? `${req.protocol}://${req.get("host")}/public/${req.file.filename}`
-      : deal.image;
+    deal.image = req.file ? req.file.path : deal.image;
+    deal.public_id =req.file? req.file.filename : deal.public_id;
 
     await deal.save();
 
     res.status(200).json({ message: "Deal updated successfully", deal });
   } catch (error) {
     console.error("Update error:", error);
-    res.status(500).json({ message: `Failed to update Deal with ID ${id}`, error });
+    res
+      .status(500)
+      .json({ message: `Failed to update Deal with ID ${id}`, error });
   }
 }
-
 
 module.exports = {
   handleAddDeals,

@@ -1,5 +1,6 @@
 const Items = require("./model");
 const mongoose = require("mongoose");
+const cloudinary = require("cloudinary").v2;
 
 // Handle to Add Items
 async function handleAddItems(req, res) {
@@ -67,6 +68,8 @@ async function handleAddItems(req, res) {
       softDeletedItem.retailPrice = retailPrice;
       softDeletedItem.variants = variants;
       softDeletedItem.categoryId = categoryId;
+      softDeletedItem.image = req.file ? req.file.path : softDeletedItem.image;
+      softDeletedItem.public_id = req.file? req.file.filename : softDeletedItem.public_id;
       await softDeletedItem.save();
 
       return res
@@ -79,9 +82,8 @@ async function handleAddItems(req, res) {
       categoryName,
       name,
       retailPrice,
-      image: req.file
-        ? `${req.protocol}://${req.get("host")}/public/${req.file.filename}`
-        : null,
+      image: req.file ? req.file.path : null,
+      public_id: req.file ? req.file.filename : null,
       variants,
       createdBy: created
     });
@@ -219,7 +221,8 @@ async function handleUpdateItem(req, res) {
         return v;
       });
     }
-
+    item.image = req.file ? req.file.path : item.image;
+    item.public_id =req.file? req.file.filename : item.public_id;
     await item.save();
     res.status(200).json({ message: "Item updated successfully", item });
   } catch (error) {

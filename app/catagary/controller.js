@@ -1,8 +1,9 @@
 const Categories = require("./model");
 const mongoose = require("mongoose");
 const Items = require("../item/model");
+const cloudinary = require("cloudinary").v2;
 
-// Handle to Add Category 
+// Handle to Add Category
 async function handelAddCategory(req, res) {
   const user = await req.user;
   const { name, description } = req.body;
@@ -17,12 +18,11 @@ async function handelAddCategory(req, res) {
       return res.status(400).json({ message: "Category already exists" });
     }
 
-    const newCategory =  new Categories({
+    const newCategory = new Categories({
       name,
       description,
-      image: req.file
-        ? `${req.protocol}://${req.get("host")}/public/${req.file.filename}`
-        : null,
+      image: req.file ? req.file.path : null,
+      public_id: req.file ? req.file.filename : null,
       createdBy: user.userId,
     });
 
@@ -39,7 +39,7 @@ async function handelAddCategory(req, res) {
 async function getAllCategory(req, res) {
   try {
     const user = await req.user;
-    const allCategory = await Categories.find({createdBy: user.userId});
+    const allCategory = await Categories.find({ createdBy: user.userId });
     res.status(200).json({ categories: allCategory });
   } catch (error) {
     res.status(500).json({ message: "Internal server error" });
@@ -60,6 +60,15 @@ async function deleteCategory(req, res) {
           "Category cannot be deleted because it is linked to existing items",
       });
     }
+    const existingCategory = await Categories.findById(id);
+    if (!existingCategory) {
+      return res
+        .status(404)
+        .json({ message: `Category with ID ${id} not found` });
+    }
+
+    await cloudinary.uploader.destroy(existingCategory.public_id);
+
     const deleteExistingCategory = await Categories.findByIdAndDelete(id);
     if (!deleteExistingCategory) {
       return res
@@ -86,10 +95,13 @@ async function handleUpdateCategory(req, res) {
   const updateData = {};
   if (req.body.name) updateData.name = req.body.name;
   if (req.body.description) updateData.description = req.body.description;
+  const existingCategory = await Categories.findById(id);
   if (req.file) {
-    updateData.image = `${req.protocol}://${req.get("host")}/public/${
-      req.file.filename
-    }`;
+     if (existingCategory.public_id) {
+        await cloudinary.uploader.destroy(existingCategory.public_id); 
+      }
+      updateData.image = req.file.path;
+      updateData.public_id = req.file.filename;
   }
 
   if (Object.keys(updateData).length === 0) {
@@ -111,6 +123,7 @@ async function handleUpdateCategory(req, res) {
       .status(200)
       .json({ message: "Category updated successfully", updateCategory });
   } catch (error) {
+    console.log(error)
     res.status(500).json({ message: "Internal server error" });
   }
 }

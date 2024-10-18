@@ -14,6 +14,10 @@ const categoryModelSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    public_id: {
+      type: String,
+      required: true,
+    },
     createdBy: {
       type: mongoose.Schema.ObjectId,
       ref: "User",
