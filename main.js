@@ -17,7 +17,7 @@ let port = process.env.PORT || 4042;
 
 app.use(
   cors({
-    origin: process.env.NODE_ENV === "production" ? "https://point-of-sale-front-end-qk9p.vercel.app" : "http://localhost:3000",
+    origin: process.env.NODE_ENV === "production" ? "https://point-of-sale-front-end-tau.vercel.app/" : "http://localhost:3000",
     optionsSuccessStatus: 200,
   })
 );
