@@ -16,6 +16,10 @@ const addNewUserScheme = new mongoose.Schema(
       type: String,
       required: true,
     },
+    discount: {
+      type: Number,
+      default: 0,
+    },
     createdBy: {
       type: mongoose.Schema.ObjectId,
       ref: "User",

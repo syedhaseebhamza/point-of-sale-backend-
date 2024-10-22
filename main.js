@@ -3,7 +3,6 @@ const cors = require("cors");
 const path = require("path");
 require("dotenv").config();
 const { connectToDB } = require("./utils/database.js");
-const userRoutes = require("./app/userAuth/route.js");
 const newUserRoutes = require("./app/userManagement/route.js");
 const userPermissionRoutes = require("./app/rolePermission/route.js");
 const catagaryRoutes = require("./app/catagary/route.js");
@@ -25,7 +24,6 @@ app.use(
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use("/user", userRoutes);
 app.use("/user", newUserRoutes);
 app.use("/user", userPermissionRoutes);
 app.use("/api", catagaryRoutes);
