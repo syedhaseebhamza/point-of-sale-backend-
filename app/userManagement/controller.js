@@ -1,11 +1,51 @@
 const newUser = require("./model");
 const bcrypt = require("bcryptjs");
 const mongoose = require("mongoose");
+const jwt = require("jsonwebtoken");
+
+// User Login Authentication
+async function login(req, res) {
+  const { username, password } = req.body;
+  if (!username || !password) {
+    return res
+      .status(400)
+      .json({ message: "username and password are required" });
+  }
+  try {
+    let user = await newUser.findOne({ username });
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid username or password" });
+    }
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid username or password" });
+    }
+    const token = jwt.sign(
+      { userId: user._id, username: user.username, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "4h" }
+    );
+    res.status(200).json({
+      message: "Login successful",
+      token,
+      user: {
+        id: user._id,
+        username: user.username,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
 
 // Handle to Add New User
 async function addNewUser(req, res) {
   const user = req.user;
-  const createdBy = user.userId
+  const createdBy = user.userId;
+  const discount = await newUser.findById({ _id: createdBy });
   const { username, password, role } = req.body;
   if ((!username, !password, !role)) {
     return res.status(200).json({ message: "All fields are required" });
@@ -20,7 +60,8 @@ async function addNewUser(req, res) {
       username,
       password: hashedPassword,
       role,
-      createdBy
+      createdBy,
+      discount: discount.discount,
     });
     await user.save();
     res.status(201).json({ message: "User created successfully" });
@@ -92,9 +133,60 @@ async function handleEditUser(req, res) {
   }
 }
 
+// Get the Discount
+async function getDiscount(req, res) {
+  try {
+    const user = await req.user;
+    const id = user.userId;
+    const discount = await newUser.findById({ _id: id });
+    return res.status(200).json({
+      message: "Discount fetched successfully",
+      discount: discount.discount,
+    });
+  } catch (error) {
+    console.error("Error fetching discount:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+//  Handle to Update Discount
+async function updateDiscount(req, res) {
+  try {
+    const user = await req.user;
+    const id = user.userId;
+    const { newDiscount } = req.body;
+
+    if (newDiscount == null || typeof newDiscount !== "number") {
+      return res.status(400).json({
+        message: "Invalid discount value. Please provide a valid number.",
+      });
+    }
+
+    const updatedDiscount = await newUser.findByIdAndUpdate(
+      { _id: id },
+      { discount: newDiscount },
+      { new: true ,
+        runValidators: true,
+      }
+    );
+
+    return res.status(200).json({
+      message: "Discount updated successfully",
+      discount: updatedDiscount.discount
+    });
+  } catch (error) {
+    console.error("Error updating discount:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+
 module.exports = {
+  login,
   addNewUser,
   getAllUser,
   deleteUser,
   handleEditUser,
+  getDiscount,
+  updateDiscount
 };
