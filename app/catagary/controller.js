@@ -81,7 +81,6 @@ async function deleteCategory(req, res) {
       .status(200)
       .json({ message: `Category with ID ${id} deleted successfully` });
   } catch (error) {
-    console.log(error);
     res
       .status(500)
       .json({ message: `Failed to delete category with ID ${id}` });
@@ -126,7 +125,6 @@ async function handleUpdateCategory(req, res) {
       .status(200)
       .json({ message: "Category updated successfully", updateCategory });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ message: "Internal server error" });
   }
 }

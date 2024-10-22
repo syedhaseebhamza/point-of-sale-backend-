@@ -11,8 +11,8 @@ async function handleAddItems(req, res) {
 
   const { categoryName, name, retailPrice } = req.body;
   let { variants } = req.body;
-  const user = req.user
-  const created = user.userId
+  const user = req.user;
+  const created = user.userId;
 
   if (typeof variants === "string") {
     try {
@@ -49,7 +49,7 @@ async function handleAddItems(req, res) {
     const existingItem = await Items.findOne({
       name,
       isDeleted: false,
-      createdBy: user.userId
+      createdBy: user.userId,
     });
     if (existingItem) {
       return res
@@ -68,7 +68,9 @@ async function handleAddItems(req, res) {
       softDeletedItem.variants = variants;
       softDeletedItem.categoryId = categoryId;
       softDeletedItem.image = req.file ? req.file.path : softDeletedItem.image;
-      softDeletedItem.public_id = req.file? req.file.filename : softDeletedItem.public_id;
+      softDeletedItem.public_id = req.file
+        ? req.file.filename
+        : softDeletedItem.public_id;
       await softDeletedItem.save();
 
       return res
@@ -84,7 +86,7 @@ async function handleAddItems(req, res) {
       image: req.file ? req.file.path : null,
       public_id: req.file ? req.file.filename : null,
       variants,
-      createdBy: created
+      createdBy: created,
     });
 
     await newItem.save();
@@ -97,7 +99,7 @@ async function handleAddItems(req, res) {
 // Handle to Get Items
 async function handleGetItems(req, res) {
   const { categoryId } = req.query;
-  const user = req.user
+  const user = req.user;
 
   if (categoryId && !mongoose.Types.ObjectId.isValid(categoryId)) {
     return res.status(400).json({ message: "Invalid Category ID" });
@@ -106,7 +108,7 @@ async function handleGetItems(req, res) {
   try {
     const query = {
       isDeleted: false,
-      createdBy: user.userId
+      createdBy: user.userId,
     };
 
     if (categoryId) {
@@ -176,16 +178,37 @@ async function handleUpdateItem(req, res) {
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(400).json({ message: "Invalid ID" });
   }
-  const { categoryName, name, retailPrice, variants } = req.body;
+
+  const { categoryId, categoryName, name, retailPrice, variants } = req.body;
+
+  let parsedVariants = variants;
+  if (typeof variants === "string") {
+    try {
+      parsedVariants = JSON.parse(variants);
+    } catch (error) {
+      return res
+        .status(400)
+        .json({ message: "Invalid JSON format for variants" });
+    }
+  }
+
+  const retailPriceNumber =
+    retailPrice !== "null" && !isNaN(Number(retailPrice))
+      ? Number(retailPrice)
+      : null;
+
   if (
     !categoryName &&
+    !categoryId &&
     !name &&
-    !retailPrice &&
-    (!variants || !Array.isArray(variants) || variants.length === 0)
+    retailPriceNumber === null &&
+    (!parsedVariants ||
+      !Array.isArray(parsedVariants) ||
+      parsedVariants.length === 0)
   ) {
-    return res.status(400).json({
-      message: "At least one field must be provided for an update",
-    });
+    return res
+      .status(400)
+      .json({ message: "At least one field must be provided for an update" });
   }
 
   try {
@@ -193,35 +216,50 @@ async function handleUpdateItem(req, res) {
     if (!item) {
       return res.status(404).json({ message: "Item not found" });
     }
-    if (categoryName) item.categoryName = categoryName;
-    if (name) item.name = name;
-    if (retailPrice) item.retailPrice = retailPrice;
 
-    if (variants && Array.isArray(variants) && variants.length > 0) {
-      for (const variant of variants) {
+    if (categoryName) {
+      item.categoryName = categoryName;
+    }
+
+    if (categoryId) {
+      item.categoryId = categoryId;
+    }
+
+    if (name) {
+      item.name = name;
+    }
+    if (retailPriceNumber !== null) {
+      item.retailPrice = retailPriceNumber;
+    }
+
+    if (Array.isArray(parsedVariants) && parsedVariants.length > 0) {
+      parsedVariants.forEach((variant) => {
         const existingVariant = item.variants.find(
           (v) => v.size === variant.size
         );
-
         if (existingVariant) {
-          existingVariant.price = variant.price;
+          existingVariant.price = Number(variant.price);
           existingVariant.isDeleted = false;
         } else {
           item.variants.push({
             size: variant.size,
-            price: variant.price,
+            price: Number(variant.price),
+            isDeleted: false,
           });
         }
-      }
+      });
+
       item.variants = item.variants.map((v) => {
-        if (!variants.find((variant) => variant.size === v.size)) {
+        if (!parsedVariants.find((variant) => variant.size === v.size)) {
           v.isDeleted = true;
         }
         return v;
       });
     }
+
     item.image = req.file ? req.file.path : item.image;
-    item.public_id =req.file? req.file.filename : item.public_id;
+    item.public_id = req.file ? req.file.filename : item.public_id;
+
     await item.save();
     res.status(200).json({ message: "Item updated successfully", item });
   } catch (error) {

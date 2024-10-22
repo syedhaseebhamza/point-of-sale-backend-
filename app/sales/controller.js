@@ -119,7 +119,6 @@ async function handlePlaceOrder(req, res) {
       .status(201)
       .json({ message: "Order placed successfully", newOrder });
   } catch (error) {
-    console.log(error);
     return res.status(500).json({ message: "Error placing order", error });
   }
 }

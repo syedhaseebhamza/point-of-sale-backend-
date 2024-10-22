@@ -70,7 +70,9 @@ async function handleAddDeals(req, res) {
       softDeletedDeal.totalPrice = totalPrice;
       softDeletedDeal.categoryId = categoryId;
       softDeletedDeal.image = req.file ? req.file.path : softDeletedDeal.image;
-      softDeletedDeal.public_id = req.file? req.file.filename : softDeletedDeal.public_id;
+      softDeletedDeal.public_id = req.file
+        ? req.file.filename
+        : softDeletedDeal.public_id;
       await softDeletedDeal.save();
 
       return res
@@ -146,7 +148,6 @@ async function handleGetDeals(req, res) {
       deals: filteredDeals,
     });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ message: "Internal server error", error });
   }
 }
@@ -189,7 +190,7 @@ async function handleUpdateDeals(req, res) {
     return res.status(400).json({ message: "Invalid ID" });
   }
 
-  const { categoryName, name, retailPrice, products } = req.body;
+  const { categoryName, categoryId, name, retailPrice, products } = req.body;
 
   let parsedProducts;
   try {
@@ -200,6 +201,7 @@ async function handleUpdateDeals(req, res) {
 
   if (
     !categoryName &&
+    !categoryId &&
     !name &&
     !retailPrice &&
     (!parsedProducts ||
@@ -219,6 +221,7 @@ async function handleUpdateDeals(req, res) {
     }
 
     if (categoryName) deal.categoryName = categoryName;
+    if (categoryId) deal.categoryId = categoryId;
     if (name) deal.name = name;
     if (retailPrice) deal.retailPrice = retailPrice;
     if (
@@ -247,7 +250,7 @@ async function handleUpdateDeals(req, res) {
     }
 
     deal.image = req.file ? req.file.path : deal.image;
-    deal.public_id =req.file? req.file.filename : deal.public_id;
+    deal.public_id = req.file ? req.file.filename : deal.public_id;
 
     await deal.save();
 
